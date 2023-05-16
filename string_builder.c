@@ -11,41 +11,61 @@ typedef struct {
   size_t capacity;
   char *inner;
 } StringBuilder_implementation;
-
 typedef StringBuilder_implementation StringBuilder;
 
+// TODO: Insertion, Replacement
+
+StringBuilder *string_builder_new_with_capacity(size_t capacity) {
+  char *string = malloc(sizeof *string * capacity);
+  *string = '\0';
+
+  StringBuilder *builder = malloc(sizeof *builder);
+  builder->length = 0;
+  builder->capacity = capacity;
+  builder->inner = string;
+
+  return builder;
+}
+
 StringBuilder *string_builder_new() {
-  size_t capacity = DEFAULT_CAPACITY;
-  char *string = malloc(sizeof *string * capacity);
-  *string = '\0';
-  
+  return string_builder_new_with_capacity(DEFAULT_CAPACITY);
+}
+
+StringBuilder *string_builder_new_from(const char *string) {
+  size_t length = strlen(string);
+  size_t capacity = length;
+    char *copy = malloc((length + 1) * sizeof *copy);
+
+  char *iterator = copy;
+  while (*string != '\0') {
+      *iterator = *string;
+
+      string++;
+      iterator++;
+  }
+  *iterator = '\0';
+
   StringBuilder *builder = malloc(sizeof *builder);
-  builder->length = 0;
+  builder->length = length;
   builder->capacity = capacity;
-  builder->inner = string;
+  builder->inner = copy;
 
   return builder;
 }
-
-StringBuilder *string_builder_new_with_capacity(int capacity) {
-  char *string = malloc(sizeof *string * capacity);
-  *string = '\0';
-
-  StringBuilder *builder = malloc(sizeof *builder);
-  builder->length = 0;
-  builder->capacity = capacity;
-  builder->inner = string;
-
-  return builder;
-}
-
-// TODO: Add constructor from string
 
 void string_builder_free(StringBuilder *builder) {
   builder->length = 0;
   builder->capacity = 0;
   free(builder->inner);
   free(builder);
+}
+
+size_t string_builder_get_length(StringBuilder *builder) {
+  return builder->length;
+}
+
+size_t string_builder_get_capacity(StringBuilder *builder) {
+  return builder->capacity;
 }
 
 char *string_builder_build(StringBuilder *builder) {
@@ -136,7 +156,11 @@ void string_builder_append_int(StringBuilder *builder, int value) {
   char chars[MAX_CHARS_IN_INT + 1];
   int i = 1;
 
-  if (value < 0) {
+  if (value == 0) {
+      string_builder_append_char(builder, '0');
+      return;
+  }
+  else if (value < 0) {
     value = -value;
 
     while (value > 0) {
@@ -172,6 +196,11 @@ void string_builder_append_format(StringBuilder *builder, const char *format, ..
       } else if (*format == 'c') {
         char value = va_arg(arg_list, int);
         string_builder_append_char(builder, value);
+      } else if (*format == '%') {
+        string_builder_append_char(builder, '%');
+      } else if (*format == 'f') {
+        // double value = va_arg(arg_list, double);
+        // string_builder_append_double(builder, value);
       }
     }
     else {
