@@ -7,6 +7,7 @@ int main() {
   StringBuilder *builder = string_builder_new_from("Hello, World!\n");
 
   string_builder_append_format(builder, "%d, %d, %d\n", 32, 0, -1);
+  string_builder_insert(builder, 1, "abc");
 
   string_builder_append_bits(builder, 32);
   string_builder_append_char(builder, '\n');
