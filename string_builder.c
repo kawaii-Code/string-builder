@@ -213,3 +213,17 @@ void string_builder_append_format(StringBuilder *builder, const char *format, ..
 
   va_end(arg_list);
 }
+
+void string_builder_append_bits(StringBuilder *builder, int value) {
+    int bit_count = 31;
+    int mask = 1 << bit_count;
+
+    while (bit_count--) {
+        if (value & mask) {
+            string_builder_append_char(builder, '1');
+        } else {
+            string_builder_append_char(builder, '0');
+        }
+        mask >>= 1;
+    }
+}
