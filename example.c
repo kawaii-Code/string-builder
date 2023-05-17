@@ -4,9 +4,21 @@
 #include "string_builder.h"
 
 int main() {
+  StringBuilder *builder = string_builder_new_from("Hello Worlord! a");
+  string_builder_replace(builder, "o", "ab");
+  printf("string = %s\n", string_builder_build(builder));
+  string_builder_replace(builder, "ab", "(ouch!)");
+  printf("string = %s\n", string_builder_build(builder));
+  string_builder_replace(builder, "ouch!", ":)");
+  printf("string = %s\n", string_builder_build(builder));
+
+  string_builder_free(builder);
+
+#if 0
   StringBuilder *builder = string_builder_new_from("Hello, World!\n");
 
   string_builder_append_format(builder, "%d, %d, %d\n", 32, 0, -1);
+  string_builder_insert(builder, 1, "abc");
 
   string_builder_append_bits(builder, 32);
   string_builder_append_char(builder, '\n');
@@ -28,4 +40,5 @@ int main() {
   printf("%s", result);
 
   string_builder_free(builder);
+#endif
 }
