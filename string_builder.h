@@ -95,7 +95,7 @@ char *string_builder_resize(StringBuilder *builder) {
 }
 
 void string_builder_ensure_capacity(StringBuilder *builder, size_t expected_length) {
-    if (expected_length >= builder->capacity) {
+    while (expected_length >= builder->capacity) {
         string_builder_resize(builder);
     }
 }
