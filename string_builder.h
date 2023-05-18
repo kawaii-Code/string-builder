@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdint.h>
 
 #ifndef STRING_BUILDER_CUSTOM_ALLOC
 #include <stdlib.h>
@@ -40,7 +41,7 @@ void string_builder_append_n(StringBuilder *builder, const char *append_string, 
 void string_builder_append_char(StringBuilder *builder, char c);
 void string_builder_append_int(StringBuilder *builder, int value);
 void string_builder_append_format(StringBuilder *builder, const char *format_string, ...);
-void string_builder_append_bits(StringBuilder *builder, int value);
+void string_builder_append_bits(StringBuilder *builder, int64_t value, int bit_count);
 void string_builder_insert(StringBuilder *builder, size_t insert_index, const char *inserted_string);
 void string_builder_replace(StringBuilder *builder, const char *string_to_replace, const char *replace_string);
 
@@ -204,10 +205,8 @@ void string_builder_append_format(StringBuilder *builder, const char *format, ..
     va_end(arg_list);
 }
 
-// This is just a bad function
-void string_builder_append_bits(StringBuilder *builder, int value) {
-    int bit_count = 31;
-    int mask = 1 << bit_count;
+void string_builder_append_bits(StringBuilder *builder, int64_t value, int bit_count) {
+    int64_t mask = (int64_t)1 << (bit_count - 1);
 
     while (bit_count--) {
         if (value & mask) {
