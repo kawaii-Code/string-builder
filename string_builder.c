@@ -14,14 +14,13 @@ typedef struct {
 typedef StringBuilder_implementation StringBuilder;
 
 StringBuilder *string_builder_new_with_capacity(size_t capacity) {
-  char *string = malloc(sizeof *string * capacity);
-  *string = '\0';
+  char *inner = malloc(sizeof *inner * capacity);
+  *inner = '\0';
 
   StringBuilder *builder = malloc(sizeof *builder);
   builder->length = 0;
   builder->capacity = capacity;
-  builder->inner = string;
-
+  builder->inner = inner;
   return builder;
 }
 
@@ -33,21 +32,12 @@ StringBuilder *string_builder_new_from(const char *string) {
   size_t length = strlen(string);
   size_t capacity = length;
   char *copy = malloc((length + 1) * sizeof *copy);
-
-  char *iterator = copy;
-  while (*string != '\0') {
-    *iterator = *string;
-
-    string++;
-    iterator++;
-  }
-  *iterator = '\0';
+  strcpy(copy, string);
 
   StringBuilder *builder = malloc(sizeof *builder);
   builder->length = length;
   builder->capacity = capacity;
   builder->inner = copy;
-
   return builder;
 }
 
@@ -71,83 +61,73 @@ char *string_builder_build(StringBuilder *builder) {
 }
 
 char *string_builder_resize(StringBuilder *builder) {
-  char *string = builder->inner;
   size_t new_capacity = RESIZE_FACTOR * builder->capacity;
-
-  char *new_string = realloc(string, new_capacity);
+  char *new_string = realloc(builder->inner, new_capacity);
 
   builder->capacity = new_capacity;
   builder->inner = new_string;
   return new_string;
 }
 
-void string_builder_append(StringBuilder *builder, const char *append_string) {
+void string_builder_ensure_capacity(StringBuilder *builder, size_t expected_length) {
+  if (expected_length >= builder->capacity) {
+    string_builder_resize(builder);
+  } 
+}
+
+void string_builder_append(StringBuilder *builder, const char *string) {
   size_t old_length = builder->length;
-  size_t capacity = builder->capacity;
-  char *string = builder->inner;
+  size_t new_length = old_length + strlen(string);
+  string_builder_ensure_capacity(builder, new_length);
 
-  size_t add_length = strlen(append_string);
-  size_t new_length = old_length + add_length;
-
-  if (new_length >= capacity) {
-    string = string_builder_resize(builder);
-  }
-
-  char *string_iterator = string + old_length;
-  while (*append_string != '\0') {
-    *string_iterator = *append_string;
-
-    string_iterator++;
-    append_string++;
-  }
-  *string_iterator = '\0';
+  char *inner_end = builder->inner + old_length;
+  strcpy(inner_end, string);
 
   builder->length = new_length;
 }
 
-void string_builder_append_reversed(StringBuilder *builder, const char *append_string, size_t append_length) {
+void string_builder_append_n(StringBuilder *builder, const char *string, size_t length) {
   size_t old_length = builder->length;
-  size_t capacity = builder->capacity;
-  char *string = builder->inner;
+  size_t new_length = old_length + length;
+  string_builder_ensure_capacity(builder, new_length);
 
+  char *inner_end = builder->inner + old_length;
+  strncpy(inner_end, string, length);
+  
+  *(builder->inner + new_length) = '\0';
+  builder->length = new_length;
+}
+
+void string_builder_append_reversed(StringBuilder *builder, const char *string, size_t append_length) {
+  size_t old_length = builder->length;
   size_t new_length = old_length + append_length;
+  string_builder_ensure_capacity(builder, new_length);
 
-  if (new_length >= capacity) {
-    string = string_builder_resize(builder);
+  char *inner_end = builder->inner + old_length;
+  const char *append_end = string + append_length;
+  while (*append_end != '\0') {
+    *inner_end = *append_end;
+    inner_end++;
+    append_end--;
   }
-
-  char *string_iterator = string + old_length;
-  const char *append_iterator = append_string + append_length;
-  while (*append_iterator != '\0') {
-    *string_iterator = *append_iterator;
-
-    string_iterator++;
-    append_iterator--;
-  }
-  *string_iterator = '\0';
+  *inner_end = '\0';
 
   builder->length = new_length;
 }
 
 void string_builder_append_char(StringBuilder *builder, char c) {
   size_t old_length = builder->length;
-  size_t capacity = builder->capacity;
-  char *string = builder->inner;
-
   size_t new_length = old_length + 1;
+  string_builder_ensure_capacity(builder, new_length);
 
-  if (new_length >= capacity) {
-    string = string_builder_resize(builder);
-  }
-
-  string[old_length] = c;
-  string[new_length] = '\0';
+  char *inner = builder->inner;
+  inner[old_length] = c;
+  inner[new_length] = '\0';
   builder->length = new_length;
 }
 
 // -2147483648
 #define MAX_CHARS_IN_INT 11
-
 void string_builder_append_int(StringBuilder *builder, int value) {
   char chars[MAX_CHARS_IN_INT + 1];
   int i = 1;
@@ -210,6 +190,7 @@ void string_builder_append_format(StringBuilder *builder, const char *format, ..
   va_end(arg_list);
 }
 
+// This is just a bad function
 void string_builder_append_bits(StringBuilder *builder, int value) {
   int bit_count = 31;
   int mask = 1 << bit_count;
@@ -226,168 +207,169 @@ void string_builder_append_bits(StringBuilder *builder, int value) {
 
 void string_builder_insert(StringBuilder *builder, size_t insert_index, const char *inserted_string) {
   size_t old_length = builder->length;
-  size_t capacity = builder->capacity;
-  char *string = builder->inner;
-
   size_t inserted_length = strlen(inserted_string);
   size_t new_length = old_length + inserted_length;
+  string_builder_ensure_capacity(builder, new_length);
 
-  if (new_length >= capacity) {
-    string = string_builder_resize(builder);
+  char *inner = builder->inner;
+  char *inner_new_end = inner + new_length;
+  char *inner_reversed = inner + old_length;
+  const char *const last_inserted_character = inner + insert_index + inserted_length - 1;
+  while (inner_new_end > last_inserted_character) {
+    *inner_new_end = *inner_reversed;
+    inner_reversed--;
+    inner_new_end--;
   }
 
-  char *copy_iterator = string + new_length;
-  char *string_reversed_iterator = string + old_length;
-  char *after_inserted = string + insert_index + inserted_length;
-  while (copy_iterator >= after_inserted) {
-    *copy_iterator = *string_reversed_iterator;
-
-    string_reversed_iterator--;
-    copy_iterator--;
-  }
-
-  char *insert_iterator = string + insert_index;
+  char *insert = inner + insert_index;
   while (*inserted_string != '\0') {
-    *insert_iterator = *inserted_string;
-
+    *insert = *inserted_string;
     inserted_string++;
-    insert_iterator++;
+    insert++;
   }
 
   builder->length = new_length;
-  builder->inner = string;
 }
 
 int string_builder_count_substrings(StringBuilder *builder, const char *substring) {
-  const char *substring_begin = substring;
-  const char *string = builder->inner;
+  const char *const substring_first_character = substring;
+  const char *inner = builder->inner;
+  int substring_count = 0;
 
-  int result = 0;
-
-  while (*string != '\0') {
-    if (*string == *substring) {
+  while (*inner != '\0') {
+    if (*inner == *substring) {
+      const char *const start_check_from = inner;
       while (*substring != '\0') {
         substring++;
-        string++;
-
-        if (*string != *substring) {
+        inner++;
+        if (*inner != *substring) {
           break;
         }
       }
-      string--;
 
       if (*substring == '\0') {
-        result++;
+        substring_count++;
+      } else {
+        inner = start_check_from + 1;
       }
 
-      substring = substring_begin;
+      substring = substring_first_character;
+    } else {
+      inner++;
     }
-    string++;
   }
 
-  return result;
+  return substring_count;
 }
 
-#include <stdio.h>
-
 void string_builder_replace(StringBuilder *builder, const char *old, const char *new) {
-  // TODO: Fix naming in this function (and the entire module)
   size_t length = builder->length;
-  char *string = builder->inner;
+  size_t old_substring_length = strlen(old);
+  size_t new_substring_length = strlen(new);
+  size_t new_length = length + (new_substring_length - old_substring_length) * string_builder_count_substrings(builder, old);
+  string_builder_ensure_capacity(builder, new_length);
 
-  size_t old_string_length = strlen(old);
-  size_t new_string_length = strlen(new);
+  // I don't want to allocate any memory in the function.
+  // To do that, all the copying and replacing has to be done
+  // in the same memory where the initial string is located.
+  // For that I need to handle two different scenarios:
+  //
+  // When the old substring is bigger than the new one, we
+  // can iterate the string from the beginning and
+  // insert the new substrings as we go: this won't overwrite
+  // any other string data because the new substring is smaller.
+  //
+  // In the other case, we must go from the end, otherwise, when
+  // replacing the old substring, we would overwrite the symbols
+  // that aren't in the old substring and ruin the entire string.
+  //
+  // A small example demonstrating the problem:
+  // ```
+  // string: abc
+  // replace: a -> aa
+  // result: aac
+  // ```
+  // If we aren't going from the end, we will end up with
+  // 'a' being replaced by 'aa' with the second 'a' overwriting 'b'.
 
-  int substring_count = string_builder_count_substrings(builder, old);
-
-  size_t new_length = length + (new_string_length - old_string_length) * substring_count;
-  if (new_length >= builder->capacity) {
-    string = string_builder_resize(builder);
-  }
-
-  // I can make two separate cases: for less and greater!
-  if (old_string_length >= new_string_length) {
-    char *copy_iterator = string;
+  char *inner = builder->inner;
+  if (old_substring_length >= new_substring_length) {
+    char *copy_iterator = inner;
     const char *const old_start = old;
     const char *const new_start = new;
+    const char *const inner_new_end = inner + new_length;
 
-    for (size_t i = 0; i < new_length; i++) {
-      if (*string == *old) {
-        char *const string_start = string;
-
-        // Is this a substring?
+    while (copy_iterator < inner_new_end) {
+      if (*inner == *old) {
+        char *const inner_start = inner;
         while (*old != '\0') {
-          if (*old != *string) {
+          if (*old != *inner) {
             break;
           }
-          string++;
+          inner++;
           old++;
         }
 
-        // Is this a substring?
         if (*old == '\0') {
-          // Change to strcpy
           while (*new != '\0') {
             *copy_iterator = *new;
             copy_iterator++;
             new++;
           }
+          new = new_start;
         } else {
-          // Not a substring, we need to copy everything that we read while checking for the substring.
-          string = string_start;
+          inner = inner_start + 1;
+          *copy_iterator = *inner_start;
+          copy_iterator++;
         }
         old = old_start;
-        new = new_start;
+      } else {
+        *copy_iterator = *inner;
+        copy_iterator++;
+        inner++;
       }
-
-      if (*string == '\0') {
-        break;
-      }
-
-      *copy_iterator = *string;
-      copy_iterator++;
-      string++;
     }
-
     *copy_iterator = '\0';
   } else {
-    const char *const old_end = old + old_string_length - 1;
-    const char *const new_end = new + new_string_length - 1;
-    const char *string_reverse_iterator = string + length - 1;
-    char *copy_iterator = string + new_length;
+    const char *const old_end = old + old_substring_length - 1;
+    const char *const new_end = new + new_substring_length - 1;
+    const char *reverse_inner = inner + length - 1;
+    char *copy_iterator = inner + new_length;
     *copy_iterator = '\0';
     copy_iterator--;
 
     for (size_t i = 0; i < length; i++) {
-      if (*string_reverse_iterator == *old_end) {
+      if (*reverse_inner == *old_end) {
         const char *old_reversed = old_end;
-        const char *const begin_from = string_reverse_iterator;
-        size_t j = old_string_length;
+        const char *const begin_from = reverse_inner;
+        size_t j = old_substring_length;
         while (j) {
-          if (*string_reverse_iterator != *old_reversed) {
+          if (*reverse_inner != *old_reversed) {
             break;
           }
-          string_reverse_iterator--;
+          reverse_inner--;
           old_reversed--;
           j--;
         }
 
         if (j == 0) {
           const char *new_reversed = new_end;
-          j = new_string_length;
+          j = new_substring_length;
           while (j--) {
             *copy_iterator = *new_reversed;
             new_reversed--;
             copy_iterator--;
           }
         } else {
-          string_reverse_iterator = begin_from;
+          reverse_inner = begin_from - 1;
+          *copy_iterator = *begin_from;
+          copy_iterator--;
         }
+      } else {
+        *copy_iterator = *reverse_inner;
+        reverse_inner--;
+        copy_iterator--;
       }
-
-      *copy_iterator = *string_reverse_iterator;
-      string_reverse_iterator--;
-      copy_iterator--;
     }
   }
 

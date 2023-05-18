@@ -9,7 +9,10 @@ size_t string_builder_get_length(StringBuilder *builder);
 size_t string_builder_get_capacity(StringBuilder *builder);
 char *string_builder_build(StringBuilder *builder);
 
+void string_builder_ensure_capacity(StringBuilder *builder, size_t expected_length);
+
 void string_builder_append(StringBuilder *builder, const char *append_string);
+void string_builder_append_n(StringBuilder *builder, const char *append_string, size_t length);
 void string_builder_append_char(StringBuilder *builder, char c);
 void string_builder_append_int(StringBuilder *builder, int value);
 void string_builder_append_format(StringBuilder *builder, const char *format_string, ...);

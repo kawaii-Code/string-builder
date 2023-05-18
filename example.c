@@ -4,41 +4,23 @@
 #include "string_builder.h"
 
 int main() {
-  StringBuilder *builder = string_builder_new_from("Hello Worlord! a");
-  string_builder_replace(builder, "o", "ab");
-  printf("string = %s\n", string_builder_build(builder));
-  string_builder_replace(builder, "ab", "(ouch!)");
-  printf("string = %s\n", string_builder_build(builder));
-  string_builder_replace(builder, "ouch!", ":)");
-  printf("string = %s\n", string_builder_build(builder));
+  StringBuilder *builder = string_builder_new();
 
-  string_builder_free(builder);
+  string_builder_ensure_capacity(builder, 10 * 10 * 10);
 
-#if 0
-  StringBuilder *builder = string_builder_new_from("Hello, World!\n");
-
-  string_builder_append_format(builder, "%d, %d, %d\n", 32, 0, -1);
-  string_builder_insert(builder, 1, "abc");
-
-  string_builder_append_bits(builder, 32);
-  string_builder_append_char(builder, '\n');
-  string_builder_append_bits(builder, -2147483648);
-  string_builder_append_char(builder, '\n');
-  string_builder_append_bits(builder, 2147483647);
-  string_builder_append_char(builder, '\n');
-
-  string_builder_append_format(builder, "%d x %d %s:\n", 10, 10, "field");
-
-  for (int x = 0; x < 10; x++) {
-    for (int y = 0; y < 10; y++) {
-      string_builder_append(builder, " * ");
+  for (int y = 0; y < 10; y++) {
+    for (int x = 0; x < 10; x++) {
+      string_builder_append(builder, " # ");
     }
     string_builder_append_char(builder, '\n');
   }
 
-  const char *result = string_builder_build(builder);
-  printf("%s", result);
+  string_builder_replace(builder, " ", ".");
+  string_builder_replace(builder, "..", ".");
+
+  string_builder_insert(builder, 0, "Field:\n");
+
+  printf("%s", string_builder_build(builder));
 
   string_builder_free(builder);
-#endif
 }
