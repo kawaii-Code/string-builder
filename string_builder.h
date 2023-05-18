@@ -1,3 +1,6 @@
+// Copyright 2023 kawaii-Code.
+// Subject to the MIT License.
+
 #ifndef STRING_BUILDER_H
 #define STRING_BUILDER_H
 
