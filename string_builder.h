@@ -64,9 +64,9 @@ StringBuilder *string_builder_new_with_capacity(size_t capacity) {
 
 StringBuilder *string_builder_new_from(const char *string) {
   size_t length = strlen(string);
-  size_t capacity = length;
-  char *copy = STRING_BUILDER_MALLOC((length + 1) * sizeof *copy);
-  strcpy(copy, string);
+  size_t capacity = length + 1;
+  char *copy = STRING_BUILDER_MALLOC(capacity * sizeof *copy);
+  memcpy(copy, string, capacity);
 
   StringBuilder *builder = STRING_BUILDER_MALLOC(sizeof *builder);
   builder->length = length;
@@ -98,14 +98,7 @@ void string_builder_ensure_capacity(StringBuilder *builder, size_t expected_leng
 }
 
 void string_builder_append(StringBuilder *builder, const char *string) {
-  size_t old_length = builder->length;
-  size_t new_length = old_length + strlen(string);
-  string_builder_ensure_capacity(builder, new_length);
-
-  char *inner_end = builder->inner + old_length;
-  strcpy(inner_end, string);
-
-  builder->length = new_length;
+  string_builder_append_n(builder, string, strlen(string));
 }
 
 void string_builder_append_n(StringBuilder *builder, const char *string, size_t length) {
@@ -114,9 +107,8 @@ void string_builder_append_n(StringBuilder *builder, const char *string, size_t 
   string_builder_ensure_capacity(builder, new_length);
 
   char *inner_end = builder->inner + old_length;
-  strncpy(inner_end, string, length);
+  memcpy(inner_end, string, length + 1);
 
-  *(builder->inner + new_length) = '\0';
   builder->length = new_length;
 }
 
