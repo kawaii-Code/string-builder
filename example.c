@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stddef.h>
 
+#define STRING_BUILDER_IMPLEMENTATION
 #include "string_builder.h"
+
+typedef struct StringBuilder StringBuilder_t;
 
 int main() {
   StringBuilder *builder = string_builder_new();
@@ -20,7 +23,7 @@ int main() {
 
   string_builder_insert(builder, 0, "Field:\n");
 
-  printf("%s", string_builder_build(builder));
+  printf("%s", builder->inner);
 
   string_builder_free(builder);
 }
