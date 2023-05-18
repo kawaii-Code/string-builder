@@ -15,6 +15,11 @@
 #define STRING_BUILDER_REALLOC realloc
 #endif // STRING_BUILDER_CUSTOM_ALLOC
 
+#ifndef STRING_BUILDER_ASSERT
+#include <assert.h>
+#define STRING_BUILDER_ASSERT assert
+#endif
+
 #ifndef STRING_BUILDER_RESIZE_FACTOR
 #define STRING_BUILDER_RESIZE_FACTOR 2
 #endif // STRING_BUILDER_RESIZE_FACTOR
@@ -55,6 +60,8 @@ StringBuilder *string_builder_new() {
 }
 
 StringBuilder *string_builder_new_with_capacity(size_t capacity) {
+    STRING_BUILDER_ASSERT(capacity > 0);
+
     char *inner = STRING_BUILDER_MALLOC(sizeof *inner * capacity);
     *inner = '\0';
 
@@ -206,6 +213,8 @@ void string_builder_append_format(StringBuilder *builder, const char *format, ..
 }
 
 void string_builder_append_bits(StringBuilder *builder, int64_t value, int bit_count) {
+    STRING_BUILDER_ASSERT((bit_count > 0) && (bit_count <= 64));
+
     int64_t mask = (int64_t)1 << (bit_count - 1);
 
     while (bit_count--) {
@@ -220,6 +229,7 @@ void string_builder_append_bits(StringBuilder *builder, int64_t value, int bit_c
 
 void string_builder_insert(StringBuilder *builder, size_t insert_index, const char *inserted_string) {
     size_t old_length = builder->length;
+    STRING_BUILDER_ASSERT(insert_index <= old_length);
     size_t inserted_length = strlen(inserted_string);
     size_t new_length = old_length + inserted_length;
     string_builder_ensure_capacity(builder, new_length);
