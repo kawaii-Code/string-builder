@@ -9,11 +9,12 @@
 #include <stdarg.h>
 #include <stdint.h>
 
-#ifndef STRBLD_CUSTOM_ALLOC
+#ifndef STRBLD_CUSTOM_MEM
 #include <stdlib.h>
 #define STRBLD_MALLOC malloc
 #define STRBLD_REALLOC realloc
-#endif // STRBLD_CUSTOM_ALLOC
+#define STRBLD_FREE free
+#endif // STRBLD_CUSTOM_MEM
 
 #ifndef STRBLD_ASSERT
 #include <assert.h>
@@ -85,8 +86,8 @@ Strbld *strbld_from(const char *string) {
 void strbld_free(Strbld *builder) {
     builder->len = 0;
     builder->cap = 0;
-    free(builder->str);
-    free(builder);
+    STRBLD_FREE(builder->str);
+    STRBLD_FREE(builder);
 }
 
 void strbld_ensure(Strbld *builder, size_t expected_length) {

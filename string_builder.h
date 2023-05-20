@@ -9,11 +9,12 @@
 #include <stdarg.h>
 #include <stdint.h>
 
-#ifndef STRING_BUILDER_CUSTOM_ALLOC
+#ifndef STRING_BUILDER_CUSTOM_MEMORY_MANAGEMENT
 #include <stdlib.h>
 #define STRING_BUILDER_MALLOC malloc
 #define STRING_BUILDER_REALLOC realloc
-#endif // STRING_BUILDER_CUSTOM_ALLOC
+#define STRING_BUILDER_FREE free
+#endif // STRING_BUILDER_CUSTOM_MEMORY_MANAGEMENT
 
 #ifndef STRING_BUILDER_ASSERT
 #include <assert.h>
@@ -85,8 +86,8 @@ StringBuilder *string_builder_new_from(const char *string) {
 void string_builder_free(StringBuilder *builder) {
     builder->length = 0;
     builder->capacity = 0;
-    free(builder->inner);
-    free(builder);
+    STRING_BUILDER_FREE(builder->inner);
+    STRING_BUILDER_FREE(builder);
 }
 
 void string_builder_ensure_capacity(StringBuilder *builder, size_t expected_length) {
