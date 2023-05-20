@@ -92,19 +92,16 @@ void string_builder_free(StringBuilder *builder) {
     free(builder);
 }
 
-char *string_builder_resize(StringBuilder *builder) {
-    size_t new_capacity = STRING_BUILDER_RESIZE_FACTOR * builder->capacity;
+void string_builder_ensure_capacity(StringBuilder *builder, size_t expected_length) {
+    size_t new_capacity = builder->capacity;
+    while (expected_length >= new_capacity) {
+        new_capacity *= STRING_BUILDER_RESIZE_FACTOR;
+    }
+
     char *new_string = STRING_BUILDER_REALLOC(builder->inner, new_capacity);
 
     builder->capacity = new_capacity;
     builder->inner = new_string;
-    return new_string;
-}
-
-void string_builder_ensure_capacity(StringBuilder *builder, size_t expected_length) {
-    while (expected_length >= builder->capacity) {
-        string_builder_resize(builder);
-    }
 }
 
 void string_builder_append(StringBuilder *builder, const char *string) {
@@ -122,14 +119,14 @@ void string_builder_append_n(StringBuilder *builder, const char *string, size_t 
     builder->length = new_length;
 }
 
-void string_builder_append_reversed(StringBuilder *builder, const char *string, size_t append_length) {
+void string_builder_append_reversed(StringBuilder *builder, const char *string, size_t length) {
     size_t old_length = builder->length;
-    size_t new_length = old_length + append_length;
+    size_t new_length = old_length + length;
     string_builder_ensure_capacity(builder, new_length);
 
     char *inner_end = builder->inner + old_length;
-    const char *append_end = string + append_length;
-    while (*append_end != '\0') {
+    const char *append_end = string + length - 1;
+    while (length--) {
         *inner_end = *append_end;
         inner_end++;
         append_end--;
@@ -151,10 +148,10 @@ void string_builder_append_char(StringBuilder *builder, char c) {
 }
 
 // -2147483648
-#define MAX_CHARS_IN_INT 11
+#define STRING_BUILDER_MAX_CHARS_IN_INT 11
 void string_builder_append_int(StringBuilder *builder, int value) {
-    char chars[MAX_CHARS_IN_INT + 1];
-    int i = 1;
+    char chars[STRING_BUILDER_MAX_CHARS_IN_INT];
+    int i = 0;
 
     if (value == 0) {
         string_builder_append_char(builder, '0');
@@ -175,9 +172,8 @@ void string_builder_append_int(StringBuilder *builder, int value) {
             value /= 10;
         }
     }
-    chars[0] = '\0';
 
-    string_builder_append_reversed(builder, chars, i - 1);
+    string_builder_append_reversed(builder, chars, i);
 }
 
 void string_builder_append_format(StringBuilder *builder, const char *format, ...) {
@@ -234,22 +230,10 @@ void string_builder_insert(StringBuilder *builder, size_t insert_index, const ch
     size_t new_length = old_length + inserted_length;
     string_builder_ensure_capacity(builder, new_length);
 
-    char *inner = builder->inner;
-    char *inner_new_end = inner + new_length;
-    char *inner_reversed = inner + old_length;
-    const char *const last_inserted_character = inner + insert_index + inserted_length - 1;
-    while (inner_new_end > last_inserted_character) {
-        *inner_new_end = *inner_reversed;
-        inner_reversed--;
-        inner_new_end--;
-    }
-
-    char *insert = inner + insert_index;
-    while (*inserted_string != '\0') {
-        *insert = *inserted_string;
-        inserted_string++;
-        insert++;
-    }
+    char *insert_at = builder->inner + insert_index;
+    char *after_insert = insert_at + inserted_length;
+    memmove(after_insert, insert_at, old_length - insert_index + 1);
+    memcpy(insert_at, inserted_string, inserted_length);
 
     builder->length = new_length;
 }
