@@ -5,6 +5,8 @@ This string builder was built with effeciency in mind and it tries not to depend
 Under the hood it uses a simple dynamic array (also called a list or vector) to store the string.
 All the functions avoid any dynamic memory allocations for anything other than to increase storage for the string built.
 
+For those who don't like the long function names, there is a variant [strbld.h](strbld.h) with significantly less typing.
+
 ## Features
 - Appending a string
 - Appending a formatted string (not all format specifiers are supported)
