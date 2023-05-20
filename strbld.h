@@ -50,9 +50,6 @@ void strbld_addbits(Strbld *bld, int64_t i, int bitcnt);
 void strbld_insert(Strbld *bld, size_t at, const char *str);
 void strbld_repl(Strbld *bld, const char *old, const char *repl);
 
-#endif // STRBLD_H
-
-
 #ifdef STRBLD_IMPLEMENTATION
 
 Strbld *strbld() {
@@ -384,3 +381,5 @@ void strbld_repl(Strbld *builder, const char *old, const char *new) {
 }
 
 #endif // STRBLD_IMPLEMENTATION
+
+#endif // STRBLD_H

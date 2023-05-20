@@ -50,9 +50,6 @@ void string_builder_append_bits(StringBuilder *builder, int64_t value, int bit_c
 void string_builder_insert(StringBuilder *builder, size_t insert_index, const char *inserted_string);
 void string_builder_replace(StringBuilder *builder, const char *string_to_replace, const char *replace_string);
 
-#endif // STRING_BUILDER_H
-
-
 #ifdef STRING_BUILDER_IMPLEMENTATION
 
 StringBuilder *string_builder_new() {
@@ -384,3 +381,5 @@ void string_builder_replace(StringBuilder *builder, const char *old, const char 
 }
 
 #endif // STRING_BUILDER_IMPLEMENTATION
+
+#endif // STRING_BUILDER_H
