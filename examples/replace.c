@@ -4,7 +4,9 @@
 #include "../string_builder.h"
 
 int main() {
-    StringBuilder *builder = string_builder_new_from("Hello, World!");
+    StringBuilder b = string_builder_new_from("Hello, World!");
+    StringBuilder *builder = &b;
+
     printf("'%s'\n", builder->inner); // 'Hello, World!'
 
     string_builder_replace(builder, "l", "ww");

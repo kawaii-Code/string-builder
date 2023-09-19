@@ -4,7 +4,8 @@
 #include "../string_builder.h"
 
 int main() {
-    StringBuilder *builder = string_builder_new();
+    StringBuilder b = string_builder_new();
+    StringBuilder *builder = &b;
 
     // Important: append_n should be used as a faster alternative
     // to append, when the string length is known. Using this

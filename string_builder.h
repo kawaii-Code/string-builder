@@ -11,9 +11,9 @@
 
 #ifndef STRING_BUILDER_CUSTOM_MEMORY_MANAGEMENT
 #include <stdlib.h>
-#define STRING_BUILDER_MALLOC malloc
+#define STRING_BUILDER_MALLOC  malloc
 #define STRING_BUILDER_REALLOC realloc
-#define STRING_BUILDER_FREE free
+#define STRING_BUILDER_FREE    free
 #endif // STRING_BUILDER_CUSTOM_MEMORY_MANAGEMENT
 
 #ifndef STRING_BUILDER_ASSERT
@@ -32,54 +32,54 @@
 typedef struct {
     size_t length;
     size_t capacity;
-    char *inner;
+    char  *inner;
 } StringBuilder;
 
-StringBuilder *string_builder_new();
-StringBuilder *string_builder_new_with_capacity(size_t capacity);
-StringBuilder *string_builder_new_from(const char *string);
-void string_builder_free(StringBuilder *builder);
+StringBuilder string_builder_new();
+StringBuilder string_builder_new_with_capacity(size_t capacity);
+StringBuilder string_builder_new_from(const char *string);
+void          string_builder_free(StringBuilder *builder);
 
 void string_builder_ensure_capacity(StringBuilder *builder, size_t expected_length);
-
 void string_builder_append(StringBuilder *builder, const char *append_string);
 void string_builder_append_n(StringBuilder *builder, const char *append_string, size_t length);
 void string_builder_append_char(StringBuilder *builder, char c);
 void string_builder_append_int(StringBuilder *builder, int value);
-void string_builder_append_format(StringBuilder *builder, const char *format_string, ...);
+void string_builder_append_format(StringBuilder *builder, const char *format, ...);
 void string_builder_append_bits(StringBuilder *builder, int64_t value, int bit_count);
-void string_builder_insert(StringBuilder *builder, size_t insert_index, const char *inserted_string);
-void string_builder_replace(StringBuilder *builder, const char *string_to_replace, const char *replace_string);
+void string_builder_insert(StringBuilder *builder, size_t insert_index, const char *insertion);
+void string_builder_replace(StringBuilder *builder, const char *string_to_replace, const char *replacement);
 
+#define STRING_BUILDER_IMPLEMENTATION
 #ifdef STRING_BUILDER_IMPLEMENTATION
 
-StringBuilder *string_builder_new() {
+StringBuilder string_builder_new() {
     return string_builder_new_with_capacity(STRING_BUILDER_DEFAULT_CAPACITY);
 }
 
-StringBuilder *string_builder_new_with_capacity(size_t capacity) {
+StringBuilder string_builder_new_with_capacity(size_t capacity) {
     STRING_BUILDER_ASSERT(capacity > 0);
 
     char *inner = STRING_BUILDER_MALLOC(sizeof *inner * capacity);
     *inner = '\0';
 
-    StringBuilder *builder = STRING_BUILDER_MALLOC(sizeof *builder);
-    builder->length = 0;
-    builder->capacity = capacity;
-    builder->inner = inner;
+    StringBuilder builder;
+    builder.length = 0;
+    builder.capacity = capacity;
+    builder.inner = inner;
     return builder;
 }
 
-StringBuilder *string_builder_new_from(const char *string) {
+StringBuilder string_builder_new_from(const char *string) {
     size_t length = strlen(string);
     size_t capacity = length + 1;
     char *copy = STRING_BUILDER_MALLOC(capacity * sizeof *copy);
     memcpy(copy, string, capacity);
 
-    StringBuilder *builder = STRING_BUILDER_MALLOC(sizeof *builder);
-    builder->length = length;
-    builder->capacity = capacity;
-    builder->inner = copy;
+    StringBuilder builder;
+    builder.length = length;
+    builder.capacity = capacity;
+    builder.inner = copy;
     return builder;
 }
 
@@ -87,7 +87,6 @@ void string_builder_free(StringBuilder *builder) {
     builder->length = 0;
     builder->capacity = 0;
     STRING_BUILDER_FREE(builder->inner);
-    STRING_BUILDER_FREE(builder);
 }
 
 void string_builder_ensure_capacity(StringBuilder *builder, size_t expected_length) {
