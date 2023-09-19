@@ -24,7 +24,8 @@ For those who don't like the long function names, there is a variant [strbld.h](
 #define FIELD_SIZE 10
 
 int main() {
-    StringBuilder *builder = string_builder_new();
+    StringBuilder b = string_builder_new();
+    StringBuilder *builder = &b; // Unfortunately, this boilerplate is needed.
 
     string_builder_append_format(builder, "Building a %dx%d field:\n", FIELD_SIZE, FIELD_SIZE);
 
