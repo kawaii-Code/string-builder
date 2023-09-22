@@ -32,7 +32,7 @@
 typedef struct {
     size_t length;
     size_t capacity;
-    char  *inner;
+    char  *string;
 } StringBuilder;
 
 StringBuilder string_builder_new();
@@ -66,7 +66,7 @@ StringBuilder string_builder_new_with_capacity(size_t capacity) {
     StringBuilder builder;
     builder.length = 0;
     builder.capacity = capacity;
-    builder.inner = inner;
+    builder.string = inner;
     return builder;
 }
 
@@ -79,14 +79,14 @@ StringBuilder string_builder_new_from(const char *string) {
     StringBuilder builder;
     builder.length = length;
     builder.capacity = capacity;
-    builder.inner = copy;
+    builder.string = copy;
     return builder;
 }
 
 void string_builder_free(StringBuilder *builder) {
     builder->length = 0;
     builder->capacity = 0;
-    STRING_BUILDER_FREE(builder->inner);
+    STRING_BUILDER_FREE(builder->string);
 }
 
 void string_builder_ensure_capacity(StringBuilder *builder, size_t expected_length) {
@@ -95,10 +95,10 @@ void string_builder_ensure_capacity(StringBuilder *builder, size_t expected_leng
         new_capacity *= STRING_BUILDER_RESIZE_FACTOR;
     }
 
-    char *new_string = STRING_BUILDER_REALLOC(builder->inner, new_capacity);
+    char *new_string = STRING_BUILDER_REALLOC(builder->string, new_capacity);
 
     builder->capacity = new_capacity;
-    builder->inner = new_string;
+    builder->string = new_string;
 }
 
 void string_builder_append(StringBuilder *builder, const char *string) {
@@ -110,7 +110,7 @@ void string_builder_append_n(StringBuilder *builder, const char *string, size_t 
     size_t new_length = old_length + length;
     string_builder_ensure_capacity(builder, new_length);
 
-    char *inner_end = builder->inner + old_length;
+    char *inner_end = builder->string + old_length;
     memcpy(inner_end, string, length + 1);
 
     builder->length = new_length;
@@ -121,7 +121,7 @@ void string_builder_append_reversed(StringBuilder *builder, const char *string, 
     size_t new_length = old_length + length;
     string_builder_ensure_capacity(builder, new_length);
 
-    char *inner_end = builder->inner + old_length;
+    char *inner_end = builder->string + old_length;
     const char *append_end = string + length - 1;
     while (length--) {
         *inner_end = *append_end;
@@ -138,7 +138,7 @@ void string_builder_append_char(StringBuilder *builder, char c) {
     size_t new_length = old_length + 1;
     string_builder_ensure_capacity(builder, new_length);
 
-    char *inner = builder->inner;
+    char *inner = builder->string;
     inner[old_length] = c;
     inner[new_length] = '\0';
     builder->length = new_length;
@@ -227,7 +227,7 @@ void string_builder_insert(StringBuilder *builder, size_t insert_index, const ch
     size_t new_length = old_length + inserted_length;
     string_builder_ensure_capacity(builder, new_length);
 
-    char *insert_at = builder->inner + insert_index;
+    char *insert_at = builder->string + insert_index;
     char *after_insert = insert_at + inserted_length;
     memmove(after_insert, insert_at, old_length - insert_index + 1);
     memcpy(insert_at, inserted_string, inserted_length);
@@ -237,7 +237,7 @@ void string_builder_insert(StringBuilder *builder, size_t insert_index, const ch
 
 int string_builder_count_substrings(StringBuilder *builder, const char *substring) {
     const char *const substring_first_character = substring;
-    const char *inner = builder->inner;
+    const char *inner = builder->string;
     int substring_count = 0;
 
     while (*inner != '\0') {
@@ -296,7 +296,7 @@ void string_builder_replace(StringBuilder *builder, const char *old, const char 
     // If we aren't going from the end, we will end up with
     // 'a' being replaced by 'aa' with the second 'a' overwriting 'b'.
 
-    char *inner = builder->inner;
+    char *inner = builder->string;
     if (old_substring_length >= new_substring_length) {
         char *copy_iterator = inner;
         const char *const old_start = old;

@@ -13,7 +13,7 @@ int main() {
     // as it doesn't copy the null byte.
     string_builder_append_n(builder, "Hello, World!", 5);
 
-    printf("'%s'", builder->inner); // 'Hello,' !!!
+    printf("'%s'", builder->string); // 'Hello,' !!!
 
     string_builder_free(builder);
 }

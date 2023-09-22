@@ -43,7 +43,7 @@ int main() {
 
     string_builder_insert(builder, 0, "Hello, String Builder!\n");
 
-    printf("%s", builder->inner);
+    printf("%s", builder->string);
 
     string_builder_free(builder);
 }
