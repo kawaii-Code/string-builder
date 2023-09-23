@@ -3,9 +3,7 @@ An stb-style library that provides efficient and convenient dynamic string const
 
 This string builder was built with effeciency in mind and it tries not to depend on the standard library too much.
 Under the hood it uses a simple dynamic array (also called a list or vector) to store the string.
-All the functions avoid any dynamic memory allocations for anything other than to increase storage for the string built.
-
-For those who don't like the long function names, there is a variant [strbld.h](strbld.h) with significantly less typing.
+All the functions avoid dynamic memory allocations for anything other than increasing storage for the actual string.
 
 ## Features
 - Appending a string
