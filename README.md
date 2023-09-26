@@ -7,7 +7,7 @@ All the functions avoid dynamic memory allocations for anything other than incre
 
 ## Features
 - Appending a string
-- Appending a formatted string (not all format specifiers are supported)
+- Appending a formatted string as in `printf`
 - Replacing a substring with another string
 - Inserting a string at the given index
 - Other small functions, like appending a value in it's bit representation

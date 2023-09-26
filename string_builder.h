@@ -9,6 +9,10 @@
 #include <stdarg.h>
 #include <stdint.h>
 
+#ifndef STRING_BUILDER_NO_FORMAT
+#include <stdio.h>
+#endif
+
 #ifndef STRING_BUILDER_CUSTOM_MEMORY_MANAGEMENT
 #include <stdlib.h>
 #define STRING_BUILDER_MALLOC  malloc
@@ -172,37 +176,26 @@ void string_builder_append_int(StringBuilder *builder, int value) {
     string_builder_append_reversed(builder, chars, i);
 }
 
+#ifndef STRING_BUILDER_NO_FORMAT
 void string_builder_append_format(StringBuilder *builder, const char *format, ...) {
     va_list arg_list;
+    size_t old_length = builder->length;
+    char *string = builder->string;
+
     va_start(arg_list, format);
-
-    while (*format != '\0') {
-        if (*format == '%') {
-            format++;
-            if (*format == 'd') {
-                int value = va_arg(arg_list, int);
-                string_builder_append_int(builder, value);
-            } else if (*format == 's') {
-                char *value = va_arg(arg_list, char*);
-                string_builder_append(builder, value);
-            } else if (*format == 'c') {
-                char value = va_arg(arg_list, int);
-                string_builder_append_char(builder, value);
-            } else if (*format == '%') {
-                string_builder_append_char(builder, '%');
-            }
-            // TODO: Add support for more formats
-        }
-        else {
-            // Slow
-            string_builder_append_char(builder, *format);
-        }
-
-        format++;
-    }
-
+    size_t appended_length = vsnprintf(NULL, 0, format, arg_list);
+    size_t new_length = old_length + appended_length;
+    string_builder_ensure_capacity(builder, new_length);
     va_end(arg_list);
+
+    char *string_end = string + old_length;
+    va_start(arg_list, format);
+    vsnprintf(string_end, appended_length + 1, format, arg_list);
+    va_end(arg_list);
+
+    builder->length = new_length;
 }
+#endif
 
 void string_builder_append_bits(StringBuilder *builder, int64_t value, int bit_count) {
     STRING_BUILDER_ASSERT((bit_count > 0) && (bit_count <= 64));
