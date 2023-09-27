@@ -49,9 +49,225 @@ void string_builder_append(StringBuilder *builder, const char *append_string);
 void string_builder_append_n(StringBuilder *builder, const char *append_string, size_t length);
 void string_builder_append_char(StringBuilder *builder, char c);
 void string_builder_append_int(StringBuilder *builder, int value);
-void string_builder_append_format(StringBuilder *builder, const char *format, ...);
 void string_builder_append_bits(StringBuilder *builder, int64_t value, int bit_count);
+void string_builder_append_format(StringBuilder *builder, const char *format, ...);
 void string_builder_insert(StringBuilder *builder, size_t insert_index, const char *insertion);
+void string_builder_replace(StringBuilder *builder, const char *string_to_replace, const char *replacement);
+
+// Creates a new StringBuilder with length set to zero and
+// capacity set to STRING_BUILDER_DEFAULT_CAPACITY.
+// Allocates STRING_BUILDER_DEFAULT_CAPACITY bytes for the
+// string and sets the string equal to the null terminator.
+//
+//
+// Example:
+//
+// StringBuilder builder = string_builder_new();
+// builder = StringBuilder{
+//      length = 0,
+//      capacity = STRING_BUILDER_DEFAULT_CAPACITY,
+//      string = "\0",
+// }
+StringBuilder string_builder_new();
+
+// Creates a new StringBuilder with length set to zero and
+// capacity set to `capacity`.
+// Allocates `capacity` bytes for the string and sets the 
+// string equal to the null terminator.
+//
+//
+// Example:
+//
+// string_builder_new_with_capacity(1024) -> StringBuilder{
+//      length = 0,
+//      capacity = 1024,
+//      string = "\0",
+// }
+StringBuilder string_builder_new_with_capacity(size_t capacity);
+
+//
+// Creates a new StringBuilder with length set to strlen(`string`)
+// and capacity set to strlen(`string`) + 1.
+// strlen(`string`) + 1 bytes are allocated to hold the string.
+// `string` is copied into the allocated memory.
+//
+//
+// Example:
+//
+// StringBuilder builder = string_builder_new_from("Hello");
+// builder = StringBuilder{
+//      length = 5,
+//      capacity = 6,
+//      string = "Hello\0",
+// }
+StringBuilder string_builder_new_from(const char *string);
+
+// Frees the memory allocated for the string and resets
+// length and capacity. After calling string_builder_free(),
+// the freed builder should not be used anymore.
+//
+//
+// Example:
+//
+// StringBuilder builder = string_builder_new();
+// string_builder_free(&builder);
+// string_builder_append(&builder, "Hello"); /* DON'T DO THAT! */
+void          string_builder_free(StringBuilder *builder);
+
+// After calling string_builder_ensure_capacity(builder, expected_length), the builder
+// is guaranteed to have enough memory allocated for string of length `expected_length`.
+//
+// The null terminator shouldn't be counted in `expected_length`.
+//
+//
+// Example:
+//
+// StringBuilder builder = string_builder_new_with_capacity(3);
+// const char *string = "Hello";
+// /* The builder will now have enough memory to store "Hello". */
+// string_builder_ensure_capacity(&builder, strlen(string));
+void string_builder_ensure_capacity(StringBuilder *builder, size_t expected_length);
+
+// Appends the `append_string` to the end of the string being built.
+// Memory is allocated if needed.
+//
+//
+// Example:
+//
+// StringBuilder builder = string_builder_new_with_capacity(4);
+// string_builder_append(&builder, "hello");
+// string_builder_append(&builder, " ");
+// string_builder_append(&builder, "world");
+//
+// builder = StringBuilder{
+//      length = 11,
+//      capacity = ???, // Greater than length
+//      string = "hello world\0",
+// }
+void string_builder_append(StringBuilder *builder, const char *append_string);
+
+// Appends `length` characters from `append_string` to the end of the string
+// being built. The resulting string is null terminated.
+// Memory is allocated if needed.
+//
+//
+// Example:
+//
+// StringBuilder builder = string_builder_new_with_capacity(1);
+// string_builder_append_n(builder, "hello", 2);
+// builder = StringBuilder{
+//      length = 2,
+//      capacity = ???, // Greater than length
+//      string = "he\0",
+// }
+void string_builder_append_n(StringBuilder *builder, const char *append_string, size_t length);
+
+// Appends a character `c` to the end of the built string.
+// Memory is allocated if needed.
+//
+//
+// Example:
+//
+// StringBuilder builder = string_builder_new();
+// string_builder_append_char(builder, 'a');
+// string_builder_append_char(builder, 'b');
+// string_builder_append_char(builder, 'c');
+// string_builder_append_char(builder, 'd');
+// string_builder_append_char(builder, 'e');
+// builder = StringBuilder{
+//      length = 5,
+//      capacity = ???, // Greater than length
+//      string = "abcde\0",
+// }
+void string_builder_append_char(StringBuilder *builder, char c);
+
+// Appends an integer to the end of the string being built.
+// The integer is converted to it's string representation.
+// No memory is allocated for integer to string conversion.
+//
+//
+// Example:
+//
+// StringBuilder builder = string_builder_new();
+// string_builder_append_int(builder, 123);
+// builder = StringBuilder{
+//      length = 3,
+//      capacity = ???, // Greater than length
+//      string = "123\0",
+// }
+void string_builder_append_int(StringBuilder *builder, int value);
+
+// Appends a bit representation of an integer to the end of the string
+// being built. Only `bit_count` bits are appended, starting from the
+// low-order byte. The string representation of bits is not reversed.
+// Memory is not allocated for the bit to string conversion, but
+// allocated for the string being built if needed.
+//
+//
+// Examples:
+//
+// StringBuilder builder = string_builder_new();
+// string_builder_append_bits(builder, 49, 8);
+// builder = StringBuilder{
+//      length = 8,
+//      capacity = ???, // Greater than length
+//      string = "00110001\0",
+// }
+void string_builder_append_bits(StringBuilder *builder, int64_t value, int bit_count);
+
+// Appends a formatted string to the end of the string being built.
+// The formats are the same formats that are supported in `printf``
+// No memory is allocated for integer to string conversion.
+//
+//
+// Example:
+//
+// StringBuilder builder = string_builder_new();
+// string_builder_append_format(builder, "%d * %.2f = %s", 5, 5.4, "27.0");
+// builder = StringBuilder{
+//      length = 15,
+//      capacity = ???, // Greater than length
+//      string = "5 * 5.40 = 27.0\0",
+// }
+void string_builder_append_format(StringBuilder *builder, const char *format, ...);
+
+// Inserts `insertion` at `insert_index` in the string being built.
+// All the string after `insert_index` is moved to accomodate the inserted
+// string.
+//
+// Memory is allocated if needed for the string being built.
+//
+//
+// Example:
+//
+// StringBuilder builder = string_builder_new();
+// string_builder_append(&builder, "world")
+// string_builder_insert(&builder, 0, "hello");
+// string_builder_insert(&builder, 5, " ");
+// builder = StringBuilder{
+//      length = 11,
+//      capacity = ???, // Greater than length
+//      string = "hello world\0",
+// }
+void string_builder_insert(StringBuilder *builder, size_t insert_index, const char *insertion);
+
+// Replaces all entries of `string_to_replace` in the string being built with
+// `replacement`.
+// No memory is allocated for any temporary strings / replacement needs, but
+// memory is allocated if needed for the string being built.
+//
+//
+// Example:
+//
+// StringBuilder builder = string_builder_new();
+// string_builder_append(&builder, "aabbccaaaa");
+// string_builder_replace(&builder, "aa", "d");
+// string_builder_replace(&builder, "b", "ee");
+// builder = StringBuilder{
+//      length = 9,
+//      capacity = ???, // Greater than length
+//      string = "deeeeccdd",
+// }
 void string_builder_replace(StringBuilder *builder, const char *string_to_replace, const char *replacement);
 
 #ifdef STRING_BUILDER_IMPLEMENTATION
@@ -63,7 +279,7 @@ StringBuilder string_builder_new() {
 StringBuilder string_builder_new_with_capacity(size_t capacity) {
     STRING_BUILDER_ASSERT(capacity > 0);
 
-    char *inner = STRING_BUILDER_MALLOC(sizeof *inner * capacity);
+    char *inner = STRING_BUILDER_MALLOC(capacity * sizeof *inner);
     *inner = '\0';
 
     StringBuilder builder;
@@ -116,6 +332,7 @@ void string_builder_append_n(StringBuilder *builder, const char *string, size_t 
     char *inner_end = builder->string + old_length;
     memcpy(inner_end, string, length + 1);
 
+    builder->string[new_length] = '\0';
     builder->length = new_length;
 }
 

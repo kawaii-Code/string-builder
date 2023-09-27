@@ -11,5 +11,5 @@ int main() {
     string_builder_insert(builder, 0, "Hello");
     string_builder_insert(builder, 5, ", ");
 
-    printf("'%s'", builder->string); // 'Hello, World?'
+    printf("%s\n", builder->string); // Hello, World?
 }
