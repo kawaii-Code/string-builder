@@ -11,7 +11,7 @@
 
 #ifndef STRING_BUILDER_NO_FORMAT
 #include <stdio.h>
-#endif
+#endif // STRING_BUILDER_NO_FORMAT
 
 #ifndef STRING_BUILDER_CUSTOM_MEMORY_MANAGEMENT
 #include <stdlib.h>
@@ -23,7 +23,7 @@
 #ifndef STRING_BUILDER_ASSERT
 #include <assert.h>
 #define STRING_BUILDER_ASSERT assert
-#endif
+#endif // STRING_BUILDER_ASSERT
 
 #ifndef STRING_BUILDER_RESIZE_FACTOR
 #define STRING_BUILDER_RESIZE_FACTOR 2
@@ -412,7 +412,7 @@ void string_builder_append_format(StringBuilder *builder, const char *format, ..
 
     builder->length = new_length;
 }
-#endif
+#endif // STRING_BUILDER_NO_FORMAT
 
 void string_builder_append_bits(StringBuilder *builder, int64_t value, int bit_count) {
     STRING_BUILDER_ASSERT((bit_count > 0) && (bit_count <= 64));
