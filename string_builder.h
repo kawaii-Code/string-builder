@@ -397,7 +397,6 @@ void string_builder_append_int(StringBuilder *builder, int value) {
 void string_builder_append_format(StringBuilder *builder, const char *format, ...) {
     va_list arg_list;
     size_t old_length = builder->length;
-    char *string = builder->string;
 
     va_start(arg_list, format);
     size_t appended_length = vsnprintf(NULL, 0, format, arg_list);
@@ -405,7 +404,7 @@ void string_builder_append_format(StringBuilder *builder, const char *format, ..
     string_builder_ensure_capacity(builder, new_length);
     va_end(arg_list);
 
-    char *string_end = string + old_length;
+    char *string_end = builder->string + old_length;
     va_start(arg_list, format);
     vsnprintf(string_end, appended_length + 1, format, arg_list);
     va_end(arg_list);
